@@ -46,6 +46,11 @@ function generateGenericReligiousResponse() {
   return "'In every hardship, there is an opportunity for patience and faith.'";
 }
 
+// Function to generate a normal response for non-religious content
+function generateNormalResponse(transcript) {
+  return `You said: "${transcript}". How can I assist you further?`;
+}
+
 // Function to check for abusive or vulgar content
 function containsAbusiveContent(transcript) {
   const abusivePatterns = [
@@ -64,7 +69,7 @@ function containsAbusiveContent(transcript) {
   return abusivePatterns.some(pattern => pattern.test(transcript));
 }
 
-// Function to analyze the transcript for religious content
+// Function to analyze the transcript for content
 function analyzeContent(transcript) {
   // Check for abusive content
   if (containsAbusiveContent(transcript)) {
@@ -89,11 +94,11 @@ function analyzeContent(transcript) {
   // Check if the transcript matches any of the religious patterns
   const isReligious = religiousPatterns.some(pattern => pattern.test(transcript));
 
-  // If a match is found, return a divine answer, else return a generic religious response
+  // If a match is found, return a divine answer; if not, return a normal response
   if (isReligious) {
     return generateDivineAnswer();
   } else {
-    return generateGenericReligiousResponse();
+    return generateNormalResponse(transcript);
   }
 }
 
