@@ -46,13 +46,31 @@ function generateDivineAnswer(transcript) {
 
 // Function to analyze the transcript for religious content
 function analyzeContent(transcript) {
-  const keywords = ['God', 'religion', 'spiritual', 'faith', 'church', 'temple', 'mosque', 'prayer'];
-  const isRelatedToReligion = keywords.some(keyword => transcript.toLowerCase().includes(keyword.toLowerCase()));
+  // Expanded list of keywords and phrases to improve detection
+  const keywords = [
+    'God', 'religion', 'spiritual', 'faith', 'church', 'temple', 'mosque', 
+    'prayer', 'Quran', 'Bible', 'verse', 'scripture', 'holy', 'merciful', 'mercifulness'
+  ];
 
-  if (isRelatedToReligion) {
+  const religiousPhrases = [
+    'Can you tell me a Quranic verse', 
+    'Tell me a verse from the Bible', 
+    'Recite something from the holy book', 
+    'Give me a scripture about', 
+    'I want to hear a quote from'
+  ];
+
+  // Check for any keyword matches
+  const isKeywordMatch = keywords.some(keyword => transcript.toLowerCase().includes(keyword.toLowerCase()));
+
+  // Check for any religious phrase matches
+  const isPhraseMatch = religiousPhrases.some(phrase => transcript.toLowerCase().includes(phrase.toLowerCase()));
+
+  // If either matches, respond with a divine answer
+  if (isKeywordMatch || isPhraseMatch) {
     return generateDivineAnswer(transcript);
   } else {
-    return "I can't answer on this.";
+    return "I can't answer on this topic as it is not related to religion.";
   }
 }
 
