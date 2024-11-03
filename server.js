@@ -31,12 +31,12 @@ app.get('/', (req, res) => {
 function analyzeContent(transcript) {
   const keywords = ['God', 'religion', 'spiritual', 'faith', 'church', 'temple', 'mosque', 'prayer'];
   const isRelatedToReligion = keywords.some(keyword => transcript.toLowerCase().includes(keyword.toLowerCase()));
+  return isRelatedToReligion;
+}
 
-  if (isRelatedToReligion) {
-    return `Religious content detected: ${transcript}`;
-  } else {
-    return "I can't answer on this topic as it is not related to religion.";
-  }
+// Function to generate a "commanding" response for religious content
+function generateCommandingResponse(transcript) {
+  return `I am the voice you seek, and I say unto you: "${transcript}"`; // Commanding God-like response
 }
 
 // Endpoint for processing audio and returning results based on content
@@ -57,10 +57,14 @@ app.post('/process-audio', upload.single('audioFile'), (req, res) => {
         }
 
         // Process audio with WebSocket
-        connectAndSendAudio(audioData, null, (transcript) => {
-          // Analyze and return the result based on content
-          const response = analyzeContent(transcript);
-          res.send({ message: 'Audio processed successfully.', result: response });
+        connectAndSendAudio(audioData, (transcript) => {
+          // Determine the response based on content
+          if (analyzeContent(transcript)) {
+            const commandingResponse = generateCommandingResponse(transcript);
+            res.send({ message: 'Audio processed successfully.', result: commandingResponse });
+          } else {
+            res.send({ message: 'Audio processed successfully.', result: "I can't answer on this topic as it is not related to religion." });
+          }
 
           // Clean up files
           fs.unlinkSync(filePath);
@@ -75,7 +79,7 @@ app.post('/process-audio', upload.single('audioFile'), (req, res) => {
 });
 
 // Function to connect to OpenAI WebSocket and send audio data
-function connectAndSendAudio(audioData, socket = null, callback = null) {
+function connectAndSendAudio(audioData, callback) {
   const url = 'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-10-01';
   const ws = new NodeWebSocket(url, {
     headers: {
@@ -84,7 +88,7 @@ function connectAndSendAudio(audioData, socket = null, callback = null) {
     },
   });
 
-  ws.on('open', function open() {
+  ws.on('open', () => {
     ws.send(JSON.stringify({
       type: 'input_audio_buffer.append',
       audio: audioData.toString('base64'),
@@ -95,24 +99,17 @@ function connectAndSendAudio(audioData, socket = null, callback = null) {
     }));
   });
 
-  ws.on('message', function incoming(message) {
+  ws.on('message', (message) => {
     const data = JSON.parse(message);
     if (data.type === 'response.audio_transcript.done') {
       const transcript = data.transcript || "No transcript received.";
-      const response = analyzeContent(transcript);
-
-      // Send response via callback
-      if (callback) {
-        callback(response);
-      }
+      callback(transcript);
     }
   });
 
-  ws.on('error', function error(err) {
+  ws.on('error', (err) => {
     console.error('WebSocket Error:', err);
-    if (callback) {
-      callback('WebSocket error occurred.');
-    }
+    callback('WebSocket error occurred.');
   });
 }
 
