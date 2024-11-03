@@ -27,16 +27,33 @@ app.get('/', (req, res) => {
   res.sendFile(join(__dirname, 'index.html'));
 });
 
+// Function to provide divine answers from holy scriptures
+function generateDivineAnswer(transcript) {
+  // Simulating a divine response that quotes from holy scriptures
+  const holyResponses = [
+    "From the Bible: 'For I know the plans I have for you,' declares the Lord, 'plans to prosper you and not to harm you, plans to give you hope and a future.' - Jeremiah 29:11",
+    "From the Quran: 'Indeed, with hardship [will be] ease.' - Surah Ash-Sharh 94:6",
+    "From the Torah: 'The Lord bless you and keep you; The Lord make His face shine upon you, And be gracious to you.' - Numbers 6:24-25",
+    "From the Bhagavad Gita: 'You have the right to work, but never to the fruit of work. You should never engage in action for the sake of reward, nor should you long for inaction.' - Chapter 2, Verse 47",
+    "From Buddhist Teachings: 'Peace comes from within. Do not seek it without.' - Buddha",
+    // Add more quotes from other religious texts as needed
+  ];
+
+  // Choose a random holy scripture response
+  const randomResponse = holyResponses[Math.floor(Math.random() * holyResponses.length)];
+  return `Divine Response: ${randomResponse}`;
+}
+
 // Function to analyze the transcript for religious content
 function analyzeContent(transcript) {
   const keywords = ['God', 'religion', 'spiritual', 'faith', 'church', 'temple', 'mosque', 'prayer'];
   const isRelatedToReligion = keywords.some(keyword => transcript.toLowerCase().includes(keyword.toLowerCase()));
-  return isRelatedToReligion;
-}
 
-// Function to generate a "commanding" response for religious content
-function generateCommandingResponse(transcript) {
-  return `I am the voice you seek, and I say unto you: "${transcript}"`; // Commanding God-like response
+  if (isRelatedToReligion) {
+    return generateDivineAnswer(transcript);
+  } else {
+    return "I can't answer on this.";
+  }
 }
 
 // Endpoint for processing audio and returning results based on content
@@ -57,14 +74,10 @@ app.post('/process-audio', upload.single('audioFile'), (req, res) => {
         }
 
         // Process audio with WebSocket
-        connectAndSendAudio(audioData, (transcript) => {
-          // Determine the response based on content
-          if (analyzeContent(transcript)) {
-            const commandingResponse = generateCommandingResponse(transcript);
-            res.send({ message: 'Audio processed successfully.', result: commandingResponse });
-          } else {
-            res.send({ message: 'Audio processed successfully.', result: "I can't answer on this topic as it is not related to religion." });
-          }
+        connectAndSendAudio(audioData, null, (transcript) => {
+          // Analyze and return the result based on content
+          const response = analyzeContent(transcript);
+          res.send({ message: 'Audio processed successfully.', result: response });
 
           // Clean up files
           fs.unlinkSync(filePath);
@@ -79,7 +92,7 @@ app.post('/process-audio', upload.single('audioFile'), (req, res) => {
 });
 
 // Function to connect to OpenAI WebSocket and send audio data
-function connectAndSendAudio(audioData, callback) {
+function connectAndSendAudio(audioData, socket = null, callback = null) {
   const url = 'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-10-01';
   const ws = new NodeWebSocket(url, {
     headers: {
@@ -88,7 +101,7 @@ function connectAndSendAudio(audioData, callback) {
     },
   });
 
-  ws.on('open', () => {
+  ws.on('open', function open() {
     ws.send(JSON.stringify({
       type: 'input_audio_buffer.append',
       audio: audioData.toString('base64'),
@@ -99,17 +112,24 @@ function connectAndSendAudio(audioData, callback) {
     }));
   });
 
-  ws.on('message', (message) => {
+  ws.on('message', function incoming(message) {
     const data = JSON.parse(message);
     if (data.type === 'response.audio_transcript.done') {
       const transcript = data.transcript || "No transcript received.";
-      callback(transcript);
+      const response = analyzeContent(transcript);
+
+      // Send response via callback
+      if (callback) {
+        callback(response);
+      }
     }
   });
 
-  ws.on('error', (err) => {
+  ws.on('error', function error(err) {
     console.error('WebSocket Error:', err);
-    callback('WebSocket error occurred.');
+    if (callback) {
+      callback('WebSocket error occurred.');
+    }
   });
 }
 
