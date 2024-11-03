@@ -9,8 +9,6 @@ import { dirname, join } from 'path';
 import { WebSocket as NodeWebSocket } from 'ws';
 import dotenv from 'dotenv';
 import multer from 'multer';
-import { tmpdir } from 'os';
-import path from 'path';
 
 dotenv.config();
 ffmpeg.setFfmpegPath(ffmpegInstaller.path);
@@ -21,193 +19,93 @@ const io = new SocketIOServer(server, { cors: { origin: '*' } });
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Configure multer to use system temp directory
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const tempDir = tmpdir();
-    cb(null, tempDir);
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  }
-});
-
-const upload = multer({ storage: storage });
+// Configure multer for temporary uploads
+const upload = multer({ dest: 'uploads/' });
 
 // Serve the homepage
 app.get('/', (req, res) => {
   res.sendFile(join(__dirname, 'index.html'));
 });
 
-// Comprehensive religious content database with focus on mercy
-const religiousContent = {
-  islam: {
-    keywords: ['allah', 'quran', 'islamic', 'muslim', 'mohammad', 'mosque', 'namaz', 'salah', 'ramadan', 'eid', 'merciful', 'mercy', 'rahman', 'rahim', 'ayat', 'verse', 'surah'],
-    mercyVerses: [
-      {
-        text: "Your Lord has decreed upon Himself mercy: that any of you who does wrong out of ignorance and then repents after that and corrects himself - indeed, He is Forgiving and Merciful.",
-        source: "Surah Al-An'am 6:54"
-      },
-      {
-        text: "And My mercy embraces all things.",
-        source: "Surah Al-A'raf 7:156"
-      },
-      {
-        text: "In the name of Allah, the Most Beneficent, the Most Merciful.",
-        source: "Bismillah Ar-Rahman Ar-Raheem"
-      },
-      {
-        text: "And We have not sent you, [O Muhammad], except as a mercy to the worlds.",
-        source: "Surah Al-Anbya 21:107"
-      },
-      {
-        text: "Say, [O Muhammad], 'O My servants who have transgressed against themselves [by sinning], do not despair of the mercy of Allah. Indeed, Allah forgives all sins. Indeed, it is He who is the Forgiving, the Merciful.'",
-        source: "Surah Az-Zumar 39:53"
-      }
-    ],
-    generalVerses: [
-      {
-        text: "Indeed, with hardship [will be] ease.",
-        source: "Surah Ash-Sharh 94:6"
-      },
-      {
-        text: "And when My servants ask you concerning Me - indeed I am near.",
-        source: "Surah Al-Baqarah 2:186"
-      }
-    ]
-  },
-  // ... [other religions' content remains the same]
-};
+// Function to provide divine answers from holy scriptures
+function generateDivineAnswer(transcript) {
+  const holyResponses = [
+    "From the Quran: 'Indeed, Allah is with those who are patient.' - Surah Al-Baqarah 2:153",
+    "From the Quran: 'Indeed, with hardship [will be] ease.' - Surah Ash-Sharh 94:6",
+    "From the Quran: 'Say, “He is Allah, [Who is] One. Allah, the Eternal Refuge.”' - Surah Al-Ikhlas 112:1-2",
+    "From the Quran: 'And He is the Forgiving, the Merciful.' - Surah Al-Baqarah 2:218"
+  ];
 
-// Function to analyze content and provide appropriate religious response
+  // Choose a random holy scripture response
+  const randomResponse = holyResponses[Math.floor(Math.random() * holyResponses.length)];
+  return `Divine Response: ${randomResponse}`;
+}
+
+// Function to analyze the transcript for religious content
 function analyzeContent(transcript) {
-  console.log('Analyzing transcript:', transcript); // Debug log
-  const lowercaseTranscript = transcript.toLowerCase();
-  
-  // Special handling for mercy-related Quranic verses
-  const mercyKeywords = ['mercy', 'merciful', 'rahman', 'rahim', 'forgiveness', 'forgive'];
-  const isAskingForMercy = mercyKeywords.some(keyword => 
-    lowercaseTranscript.includes(keyword.toLowerCase())
-  );
+  // Use a case-insensitive regular expression to match religious content
+  const religiousPatterns = [
+    /quran/i,
+    /bible/i,
+    /verse/i,
+    /ayat/i,
+    /merciful/i,
+    /god/i,
+    /allah/i,
+    /spiritual/i,
+    /holy/i,
+    /scripture/i,
+    /prayer/i
+  ];
 
-  const islamicKeywords = religiousContent.islam.keywords;
-  const isIslamicQuery = islamicKeywords.some(keyword => 
-    lowercaseTranscript.includes(keyword.toLowerCase())
-  );
+  // Check if the transcript matches any of the religious patterns
+  const isReligious = religiousPatterns.some(pattern => pattern.test(transcript));
 
-  if (isIslamicQuery) {
-    if (isAskingForMercy) {
-      // Select a random mercy verse
-      const mercyVerse = religiousContent.islam.mercyVerses[
-        Math.floor(Math.random() * religiousContent.islam.mercyVerses.length)
-      ];
-      return {
-        type: 'religious',
-        religion: 'islam',
-        subtype: 'mercy',
-        response: `Here's a Quranic verse about mercy: "${mercyVerse.text}" - ${mercyVerse.source}`
-      };
-    } else {
-      // Select a random general Islamic verse
-      const generalVerse = religiousContent.islam.generalVerses[
-        Math.floor(Math.random() * religiousContent.islam.generalVerses.length)
-      ];
-      return {
-        type: 'religious',
-        religion: 'islam',
-        subtype: 'general',
-        response: `From the Quran: "${generalVerse.text}" - ${generalVerse.source}`
-      };
-    }
+  // If a match is found, return a divine answer
+  if (isReligious) {
+    return generateDivineAnswer(transcript);
+  } else {
+    return "I can't answer on this topic as it is not related to religion.";
   }
-
-  // Check for general religious terms
-  const generalReligiousTerms = ['god', 'prayer', 'faith', 'spiritual', 'divine', 'holy', 'sacred', 'blessing'];
-  const isGeneralReligious = generalReligiousTerms.some(term => 
-    lowercaseTranscript.includes(term.toLowerCase())
-  );
-
-  if (isGeneralReligious) {
-    return {
-      type: 'religious',
-      religion: 'general',
-      response: "All paths lead to the divine. Each religion offers wisdom and guidance to those who seek it."
-    };
-  }
-
-  // If no religious content is detected
-  return {
-    type: 'non_religious',
-    response: "I can't answer on this topic as it is not related to religion."
-  };
 }
 
 // Endpoint for processing audio and returning results based on content
-app.post('/process-audio', upload.single('audioFile'), async (req, res) => {
-  console.log('Audio processing request received'); // Debug log
-  
-  if (!req.file) {
-    console.log('No file uploaded'); // Debug log
-    return res.status(400).send({ error: 'No audio file provided.' });
-  }
+app.post('/process-audio', upload.single('audioFile'), (req, res) => {
+  const filePath = req.file.path;
+  const targetPath = join(__dirname, 'uploads', `${Date.now()}-${req.file.originalname}`);
 
-  try {
-    const filePath = req.file.path;
-    const tempOutputPath = path.join(tmpdir(), `processed-${Date.now()}.wav`);
-    console.log('Processing file:', filePath); // Debug log
-
-    // Convert and process the audio file
-    await new Promise((resolve, reject) => {
-      ffmpeg(filePath)
-        .outputOptions(['-f s16le', '-acodec pcm_s16le', '-ac 1', '-ar 16000'])
-        .save(tempOutputPath)
-        .on('end', resolve)
-        .on('error', reject);
-    });
-
-    const audioData = await fs.promises.readFile(tempOutputPath);
-    console.log('Audio file converted successfully'); // Debug log
-
-    // Process audio with WebSocket
-    const response = await new Promise((resolve, reject) => {
-      connectAndSendAudio(audioData, null, (transcript) => {
-        console.log('Received transcript:', transcript); // Debug log
-        if (!transcript || transcript === 'Error processing audio.') {
-          reject(new Error('Failed to process audio'));
+  // Convert and process the audio file
+  ffmpeg(filePath)
+    .outputOptions(['-f s16le', '-acodec pcm_s16le', '-ac 1', '-ar 16000'])
+    .save(targetPath)
+    .on('end', () => {
+      fs.readFile(targetPath, (err, audioData) => {
+        if (err) {
+          console.error('Error reading audio file:', err);
+          res.status(500).send({ error: 'Error reading processed audio file.' });
           return;
         }
 
-        const result = analyzeContent(transcript);
-        resolve({ transcript, result });
+        // Process audio with WebSocket
+        connectAndSendAudio(audioData, null, (transcript) => {
+          // Analyze and return the result based on content
+          const response = analyzeContent(transcript);
+          res.send({ message: 'Audio processed successfully.', result: response });
+
+          // Clean up files
+          fs.unlinkSync(filePath);
+          fs.unlinkSync(targetPath);
+        });
       });
+    })
+    .on('error', (err) => {
+      console.error('Error converting audio:', err);
+      res.status(500).send({ error: 'Error processing file.' });
     });
-
-    console.log('Sending response:', response); // Debug log
-    res.send({
-      message: 'Audio processed successfully',
-      ...response
-    });
-
-    // Clean up temporary files
-    try {
-      fs.unlinkSync(filePath);
-      fs.unlinkSync(tempOutputPath);
-    } catch (err) {
-      console.error('Error cleaning up temporary files:', err);
-    }
-  } catch (error) {
-    console.error('Error in audio processing:', error);
-    res.status(500).send({
-      error: 'Error processing audio',
-      details: error.message
-    });
-  }
 });
 
 // Function to connect to OpenAI WebSocket and send audio data
 function connectAndSendAudio(audioData, socket = null, callback = null) {
-  console.log('Connecting to OpenAI WebSocket'); // Debug log
-  
   const url = 'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-10-01';
   const ws = new NodeWebSocket(url, {
     headers: {
@@ -216,10 +114,7 @@ function connectAndSendAudio(audioData, socket = null, callback = null) {
     },
   });
 
-  let hasResponded = false;
-
   ws.on('open', function open() {
-    console.log('WebSocket connection opened'); // Debug log
     ws.send(JSON.stringify({
       type: 'input_audio_buffer.append',
       audio: audioData.toString('base64'),
@@ -231,69 +126,25 @@ function connectAndSendAudio(audioData, socket = null, callback = null) {
   });
 
   ws.on('message', function incoming(message) {
-    console.log('Received WebSocket message'); // Debug log
-    try {
-      const data = JSON.parse(message);
-      if (data.type === 'response.audio_transcript.done' && !hasResponded) {
-        hasResponded = true;
-        const transcript = data.transcript || "No transcript received.";
-        console.log('Processing transcript:', transcript); // Debug log
-        
-        if (callback) {
-          callback(transcript);
-        }
+    const data = JSON.parse(message);
+    if (data.type === 'response.audio_transcript.done') {
+      const transcript = data.transcript || "No transcript received.";
+      const response = analyzeContent(transcript);
 
-        ws.close();
+      // Send response via callback
+      if (callback) {
+        callback(response);
       }
-    } catch (error) {
-      console.error('Error processing WebSocket message:', error);
-      if (!hasResponded) {
-        hasResponded = true;
-        if (callback) {
-          callback('Error processing audio.');
-        }
-      }
-      ws.close();
     }
   });
 
   ws.on('error', function error(err) {
     console.error('WebSocket Error:', err);
-    if (!hasResponded) {
-      hasResponded = true;
-      if (callback) {
-        callback('Error processing audio.');
-      }
+    if (callback) {
+      callback('WebSocket error occurred.');
     }
-    ws.close();
   });
-
-  // Add timeout handling
-  setTimeout(() => {
-    if (!hasResponded) {
-      hasResponded = true;
-      console.log('WebSocket timeout'); // Debug log
-      if (callback) {
-        callback('Timeout while processing audio.');
-      }
-      ws.close();
-    }
-  }, 30000); // 30 second timeout
 }
-
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.send({ status: 'healthy' });
-});
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('Global error handler:', err);
-  res.status(500).send({
-    error: 'An unexpected error occurred',
-    details: err.message
-  });
-});
 
 // Use the environment variable PORT or fallback to 3000 for local development
 const PORT = process.env.PORT || 3000;
