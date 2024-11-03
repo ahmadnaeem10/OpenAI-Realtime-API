@@ -30,15 +30,15 @@ app.get('/', (req, res) => {
 // Function to provide divine answers from holy scriptures
 function generateDivineAnswer(transcript) {
   const holyResponses = [
-    "From the Quran: 'Indeed, Allah is with those who are patient.' - Surah Al-Baqarah 2:153",
-    "From the Quran: 'Indeed, with hardship [will be] ease.' - Surah Ash-Sharh 94:6",
-    "From the Quran: 'Say, “He is Allah, [Who is] One. Allah, the Eternal Refuge.”' - Surah Al-Ikhlas 112:1-2",
-    "From the Quran: 'And He is the Forgiving, the Merciful.' - Surah Al-Baqarah 2:218"
+    "'Indeed, Allah is with those who are patient.'",
+    "'Indeed, with hardship [will be] ease.'",
+    "'Say, “He is Allah, [Who is] One. Allah, the Eternal Refuge.”'",
+    "'And He is the Forgiving, the Merciful.'"
   ];
 
   // Choose a random holy scripture response
   const randomResponse = holyResponses[Math.floor(Math.random() * holyResponses.length)];
-  return `Divine Response: ${randomResponse}`;
+  return randomResponse;
 }
 
 // Function to analyze the transcript for religious content
