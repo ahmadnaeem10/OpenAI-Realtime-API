@@ -7,15 +7,26 @@
 <script>
   window.onload = function() {
     const socket = io();
-    document.getElementById('uploadForm').onsubmit = function(event) {
+    document.getElementById('uploadForm').onsubmit = async function(event) {
       event.preventDefault();
       const file = document.getElementById('fileInput').files[0];
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const buffer = e.target.result;
-        socket.emit('audio-upload', buffer);
-      };
-      reader.readAsArrayBuffer(file);
+
+      if (file) {
+        const formData = new FormData();
+        formData.append('audioFile', file);
+
+        try {
+          const response = await fetch('/process-audio', {
+            method: 'POST',
+            body: formData
+          });
+          const data = await response.json();
+          document.getElementById('results').textContent = data.result || 'No result available.';
+        } catch (error) {
+          console.error('Error uploading file:', error);
+          document.getElementById('results').textContent = 'Error processing audio file.';
+        }
+      }
     };
 
     socket.on('transcript', function(data) {
@@ -27,7 +38,7 @@
 <body>
 <h1>Upload Audio File for Processing</h1>
 <form id="uploadForm">
-    <input type="file" id="fileInput" required>
+    <input type="file" id="fileInput" accept="audio/*" required>
     <button type="submit">Upload</button>
 </form>
 <h2>Results:</h2>
