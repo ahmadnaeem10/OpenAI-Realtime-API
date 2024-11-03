@@ -28,7 +28,7 @@ app.get('/', (req, res) => {
 });
 
 // Function to provide divine answers from holy scriptures
-function generateDivineAnswer(transcript) {
+function generateDivineAnswer() {
   const holyResponses = [
     "'Indeed, Allah is with those who are patient.'",
     "'Indeed, with hardship [will be] ease.'",
@@ -41,8 +41,36 @@ function generateDivineAnswer(transcript) {
   return randomResponse;
 }
 
+// Function to generate a generic religious response
+function generateGenericReligiousResponse() {
+  return "'In every hardship, there is an opportunity for patience and faith.'";
+}
+
+// Function to check for abusive or vulgar content
+function containsAbusiveContent(transcript) {
+  const abusivePatterns = [
+    /abuse/i,
+    /vulgar/i,
+    /offensive/i,
+    /curse/i,
+    /swear/i,
+    /fuck/i,
+    /shit/i,
+    /damn/i,
+    /bitch/i,
+    /asshole/i
+  ];
+
+  return abusivePatterns.some(pattern => pattern.test(transcript));
+}
+
 // Function to analyze the transcript for religious content
 function analyzeContent(transcript) {
+  // Check for abusive content
+  if (containsAbusiveContent(transcript)) {
+    return "I can't respond to vulgarity and abusive words.";
+  }
+
   // Use a case-insensitive regular expression to match religious content
   const religiousPatterns = [
     /quran/i,
@@ -61,11 +89,11 @@ function analyzeContent(transcript) {
   // Check if the transcript matches any of the religious patterns
   const isReligious = religiousPatterns.some(pattern => pattern.test(transcript));
 
-  // If a match is found, return a divine answer
+  // If a match is found, return a divine answer, else return a generic religious response
   if (isReligious) {
-    return generateDivineAnswer(transcript);
+    return generateDivineAnswer();
   } else {
-    return "I can't answer on this topic as it is not related to religion.";
+    return generateGenericReligiousResponse();
   }
 }
 
