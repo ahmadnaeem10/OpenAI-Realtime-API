@@ -43,13 +43,12 @@ function generateDivineAnswer() {
 
 // Function to generate a personal response
 function generatePersonalResponse(transcript) {
-  // This can be enhanced to include more dynamic responses or use AI
   return `It sounds like you said: "${transcript}". It's nice to hear such kind words!`;
 }
 
 // Function to generate a normal response for non-religious content
 function generateNormalResponse(transcript) {
-  return `You said: "${transcript}". How can I assist you further?`;
+  return `"${transcript}". How can I assist you further?`;
 }
 
 // Function to check for abusive or vulgar content
