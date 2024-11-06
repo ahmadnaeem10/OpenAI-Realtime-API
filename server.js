@@ -41,9 +41,10 @@ function generateDivineAnswer() {
   return randomResponse;
 }
 
-// Function to generate a generic religious response
-function generateGenericReligiousResponse() {
-  return "'In every hardship, there is an opportunity for patience and faith.'";
+// Function to generate a personal response
+function generatePersonalResponse(transcript) {
+  // This can be enhanced to include more dynamic responses or use AI
+  return `It sounds like you said: "${transcript}". It's nice to hear such kind words!`;
 }
 
 // Function to generate a normal response for non-religious content
@@ -94,9 +95,11 @@ function analyzeContent(transcript) {
   // Check if the transcript matches any of the religious patterns
   const isReligious = religiousPatterns.some(pattern => pattern.test(transcript));
 
-  // If a match is found, return a divine answer; if not, return a normal response
+  // If a match is found, return a divine answer; if not, check for personal or casual content
   if (isReligious) {
     return generateDivineAnswer();
+  } else if (/papa|mom|dad|love|family|friend/i.test(transcript)) {
+    return generatePersonalResponse(transcript);
   } else {
     return generateNormalResponse(transcript);
   }
@@ -121,7 +124,6 @@ app.post('/process-audio', upload.single('audioFile'), (req, res) => {
 
         // Process audio with WebSocket
         connectAndSendAudio(audioData, null, (transcript) => {
-          // Analyze and return the result based on content
           const response = analyzeContent(transcript);
           res.send({ message: 'Audio processed successfully.', result: response });
 
@@ -162,11 +164,9 @@ function connectAndSendAudio(audioData, socket = null, callback = null) {
     const data = JSON.parse(message);
     if (data.type === 'response.audio_transcript.done') {
       const transcript = data.transcript || "No transcript received.";
-      const response = analyzeContent(transcript);
-
-      // Send response via callback
+      
       if (callback) {
-        callback(response);
+        callback(transcript);
       }
     }
   });
