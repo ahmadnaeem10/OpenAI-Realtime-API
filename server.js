@@ -28,17 +28,15 @@ app.get('/', (req, res) => {
 });
 
 // Function to provide divine answers from holy scriptures
-function generateDivineAnswer() {
-  const holyResponses = [
-    "'Indeed, Allah is with those who are patient.'",
-    "'Indeed, with hardship [will be] ease.'",
-    "'Say, “He is Allah, [Who is] One. Allah, the Eternal Refuge.”'",
-    "'And He is the Forgiving, the Merciful.'"
-  ];
-
-  // Choose a random holy scripture response
-  const randomResponse = holyResponses[Math.floor(Math.random() * holyResponses.length)];
-  return randomResponse;
+function generateDivineAnswer(question) {
+  // Enhance this function to handle specific questions about surahs or books
+  if (/surah|quran/i.test(question)) {
+    return "'Al-Fatiha is often considered the most important surah in the Quran, as it is recited in every unit of the Muslim prayer.'";
+  } else if (/bible/i.test(question)) {
+    return "'Psalms is one of the most cited books in the Bible, known for its poems of praise and worship.'";
+  } else {
+    return "'I can provide insights from the Holy Scriptures. Please ask about a specific text or topic.'";
+  }
 }
 
 // Function to generate a personal response
@@ -98,13 +96,15 @@ function analyzeContent(transcript) {
     /bible/i,
     /verse/i,
     /ayat/i,
+    /surah/i,
     /merciful/i,
     /god/i,
     /allah/i,
     /spiritual/i,
     /holy/i,
     /scripture/i,
-    /prayer/i
+    /prayer/i,
+    /tell me about/i // to capture queries like "tell me about the best surah"
   ];
 
   // Check if the transcript matches any of the religious patterns
@@ -112,7 +112,7 @@ function analyzeContent(transcript) {
 
   // If a match is found, return a divine answer; if not, check for personal or casual content
   if (isReligious) {
-    return generateDivineAnswer();
+    return generateDivineAnswer(transcript);
   } else if (/papa|mom|dad|love|family|friend/i.test(transcript)) {
     return generatePersonalResponse(transcript);
   } else {
@@ -150,7 +150,7 @@ app.post('/process-audio', upload.single('audioFile'), (req, res) => {
     })
     .on('error', (err) => {
       console.error('Error converting audio:', err);
-      res.status(500).send({ error: 'Error processing file.' });
+      res.status 500).send({ error: 'Error processing file.' });
     });
 });
 
