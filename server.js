@@ -62,9 +62,9 @@ function generateGeneralResponse(transcript) {
   }
 }
 
-// Function to generate a normal response for non-religious content
-function generateNormalResponse(transcript) {
-  return generateGeneralResponse(transcript);
+// Function to handle out-of-context or irrelevant input
+function handleOutOfContext() {
+  return "I'm not sure how to respond to that. Could you please provide more details or ask another question?";
 }
 
 // Function to check for abusive or vulgar content
@@ -115,8 +115,10 @@ function analyzeContent(transcript) {
     return generateDivineAnswer();
   } else if (/papa|mom|dad|love|family|friend/i.test(transcript)) {
     return generatePersonalResponse(transcript);
+  } else if (/hi|hello|how are you|what's your age|how old are you/i.test(transcript)) {
+    return generateGeneralResponse(transcript);
   } else {
-    return generateNormalResponse(transcript);
+    return handleOutOfContext();
   }
 }
 
