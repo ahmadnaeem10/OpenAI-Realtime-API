@@ -32,7 +32,7 @@ function generateDivineAnswer() {
   const holyResponses = [
     "'Indeed, Allah is with those who are patient.'",
     "'Indeed, with hardship [will be] ease.'",
-    "'Say, “He is Allah, [Who is] One. Allah, the Eternal Refuge.”'",
+    "'Say, "He is Allah, [Who is] One. Allah, the Eternal Refuge."'",
     "'And He is the Forgiving, the Merciful.'"
   ];
 
@@ -133,18 +133,14 @@ app.post('/process-audio', upload.single('audioFile'), (req, res) => {
       fs.readFile(targetPath, (err, audioData) => {
         if (err) {
           console.error('Error reading audio file:', err);
-          res.status(500).send({ error: 'Error reading processed audio file.' });
+          res.status(500).send({ error: 'Error processing the audio file.' });
           return;
         }
 
         // Process audio with WebSocket
         connectAndSendAudio(audioData, null, (transcript) => {
-          if (!transcript) { // Handle the case where no transcript is received
-            res.send({ message: 'Voice quality is poor. Kindly upload again.' });
-          } else {
-            const response = analyzeContent(transcript);
-            res.send({ message: 'Audio processed successfully.', result: response });
-          }
+          const response = analyzeContent(transcript);
+          res.send({ message: 'Audio processed successfully.', result: response });
 
           // Clean up files
           fs.unlinkSync(filePath);
@@ -154,7 +150,7 @@ app.post('/process-audio', upload.single('audioFile'), (req, res) => {
     })
     .on('error', (err) => {
       console.error('Error converting audio:', err);
-      res.status(500).send({ error: 'Voice quality is poor. Kindly upload again.' });
+      res.status(400).send({ error: 'Audio quality is poor. Upload again with a clear audio' });
     });
 });
 
@@ -182,7 +178,7 @@ function connectAndSendAudio(audioData, socket = null, callback = null) {
   ws.on('message', function incoming(message) {
     const data = JSON.parse(message);
     if (data.type === 'response.audio_transcript.done') {
-      const transcript = data.transcript || null; // Handle potential null responses
+      const transcript = data.transcript || "No transcript received.";
       
       if (callback) {
         callback(transcript);
@@ -193,8 +189,12 @@ function connectAndSendAudio(audioData, socket = null, callback = null) {
   ws.on('error', function error(err) {
     console.error('WebSocket Error:', err);
     if (callback) {
-      callback(null); // Assume poor audio quality on WebSocket error
+      callback('WebSocket error occurred.');
     }
+  });
+
+  ws.on('close', function close() {
+    console.log('WebSocket connection closed.');
   });
 }
 
