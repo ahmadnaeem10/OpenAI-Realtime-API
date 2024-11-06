@@ -28,15 +28,17 @@ app.get('/', (req, res) => {
 });
 
 // Function to provide divine answers from holy scriptures
-function generateDivineAnswer(question) {
-  // Enhance this function to handle specific questions about surahs or books
-  if (/surah|quran/i.test(question)) {
-    return "'Al-Fatiha is often considered the most important surah in the Quran, as it is recited in every unit of the Muslim prayer.'";
-  } else if (/bible/i.test(question)) {
-    return "'Psalms is one of the most cited books in the Bible, known for its poems of praise and worship.'";
-  } else {
-    return "'I can provide insights from the Holy Scriptures. Please ask about a specific text or topic.'";
-  }
+function generateDivineAnswer() {
+  const holyResponses = [
+    "'Indeed, Allah is with those who are patient.'",
+    "'Indeed, with hardship [will be] ease.'",
+    "'Say, “He is Allah, [Who is] One. Allah, the Eternal Refuge.”'",
+    "'And He is the Forgiving, the Merciful.'"
+  ];
+
+  // Choose a random holy scripture response
+  const randomResponse = holyResponses[Math.floor(Math.random() * holyResponses.length)];
+  return randomResponse;
 }
 
 // Function to generate a personal response
@@ -96,15 +98,13 @@ function analyzeContent(transcript) {
     /bible/i,
     /verse/i,
     /ayat/i,
-    /surah/i,
     /merciful/i,
     /god/i,
     /allah/i,
     /spiritual/i,
     /holy/i,
     /scripture/i,
-    /prayer/i,
-    /tell me about/i // to capture queries like "tell me about the best surah"
+    /prayer/i
   ];
 
   // Check if the transcript matches any of the religious patterns
@@ -112,7 +112,7 @@ function analyzeContent(transcript) {
 
   // If a match is found, return a divine answer; if not, check for personal or casual content
   if (isReligious) {
-    return generateDivineAnswer(transcript);
+    return generateDivineAnswer();
   } else if (/papa|mom|dad|love|family|friend/i.test(transcript)) {
     return generatePersonalResponse(transcript);
   } else {
@@ -139,8 +139,12 @@ app.post('/process-audio', upload.single('audioFile'), (req, res) => {
 
         // Process audio with WebSocket
         connectAndSendAudio(audioData, null, (transcript) => {
-          const response = analyzeContent(transcript);
-          res.send({ message: 'Audio processed successfully.', result: response });
+          if (!transcript) { // Handle the case where no transcript is received
+            res.send({ message: 'Voice quality is poor. Kindly upload again.' });
+          } else {
+            const response = analyzeContent(transcript);
+            res.send({ message: 'Audio processed successfully.', result: response });
+          }
 
           // Clean up files
           fs.unlinkSync(filePath);
@@ -150,7 +154,7 @@ app.post('/process-audio', upload.single('audioFile'), (req, res) => {
     })
     .on('error', (err) => {
       console.error('Error converting audio:', err);
-      res.status 500).send({ error: 'Error processing file.' });
+      res.status(500).send({ error: 'Voice quality is poor. Kindly upload again.' });
     });
 });
 
@@ -178,7 +182,7 @@ function connectAndSendAudio(audioData, socket = null, callback = null) {
   ws.on('message', function incoming(message) {
     const data = JSON.parse(message);
     if (data.type === 'response.audio_transcript.done') {
-      const transcript = data.transcript || "No transcript received.";
+      const transcript = data.transcript || null; // Handle potential null responses
       
       if (callback) {
         callback(transcript);
@@ -189,7 +193,7 @@ function connectAndSendAudio(audioData, socket = null, callback = null) {
   ws.on('error', function error(err) {
     console.error('WebSocket Error:', err);
     if (callback) {
-      callback('WebSocket error occurred.');
+      callback(null); // Assume poor audio quality on WebSocket error
     }
   });
 }
