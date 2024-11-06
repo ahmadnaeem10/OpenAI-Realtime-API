@@ -32,7 +32,7 @@ function generateDivineAnswer() {
   const holyResponses = [
     "'Indeed, Allah is with those who are patient.'",
     "'Indeed, with hardship [will be] ease.'",
-    "'Say, "He is Allah, [Who is] One. Allah, the Eternal Refuge."'",
+    "'Say, “He is Allah, [Who is] One. Allah, the Eternal Refuge.”'",
     "'And He is the Forgiving, the Merciful.'"
   ];
 
@@ -133,7 +133,7 @@ app.post('/process-audio', upload.single('audioFile'), (req, res) => {
       fs.readFile(targetPath, (err, audioData) => {
         if (err) {
           console.error('Error reading audio file:', err);
-          res.status(500).send({ error: 'Error processing the audio file.' });
+          res.status(500).send({ error: 'Audio quality is poor. Please upload again with a clear audio.' });
           return;
         }
 
@@ -150,7 +150,7 @@ app.post('/process-audio', upload.single('audioFile'), (req, res) => {
     })
     .on('error', (err) => {
       console.error('Error converting audio:', err);
-      res.status(400).send({ error: 'Audio quality is poor. Upload again with a clear audio' });
+      res.status(500).send({ error: 'Audio quality is poor. Please upload again with a clear audio.' });
     });
 });
 
@@ -191,10 +191,6 @@ function connectAndSendAudio(audioData, socket = null, callback = null) {
     if (callback) {
       callback('WebSocket error occurred.');
     }
-  });
-
-  ws.on('close', function close() {
-    console.log('WebSocket connection closed.');
   });
 }
 
