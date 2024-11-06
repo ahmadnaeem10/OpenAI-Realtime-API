@@ -43,7 +43,10 @@ function generateDivineAnswer() {
 
 // Function to generate a personal response
 function generatePersonalResponse(transcript) {
-  return `It sounds like you said: "${transcript}". It's nice to hear such kind words!`;
+  if (/love you/i.test(transcript)) {
+    return `Thank you for your kind words. While I'm just a program and can't express feelings, it's good to hear positivity and love! How can I assist you further?`;
+  }
+  return `It sounds like you said: "${transcript}". It's nice to hear such kind words! How can I assist you further?`;
 }
 
 // Function to generate a normal response for non-religious content
