@@ -49,22 +49,9 @@ function generatePersonalResponse(transcript) {
   return `It sounds like you said: "${transcript}". It's nice to hear such kind words! How can I assist you further?`;
 }
 
-// Function to generate a response to general greetings and questions
-function generateGeneralResponse(transcript) {
-  if (/^hi$|^hello$|^hey$/i.test(transcript)) {
-    return "Hello! How can I assist you today?";
-  } else if (/how are you/i.test(transcript)) {
-    return "I'm just a program, so I don't have feelings, but thanks for asking! How can I help you today?";
-  } else if (/what.*your age/i.test(transcript)) {
-    return "I exist outside of time, so age doesn't apply to me. How can I assist you with your queries today?";
-  } else {
-    return `"${transcript}". How can I assist you further?`;
-  }
-}
-
-// Function to handle out-of-context or irrelevant input
-function handleOutOfContext() {
-  return "I'm not sure how to respond to that. Could you please provide more details or ask another question?";
+// Function to generate a normal response for non-religious content
+function generateNormalResponse(transcript) {
+  return `"${transcript}". How can I assist you further?`;
 }
 
 // Function to check for abusive or vulgar content
@@ -115,10 +102,8 @@ function analyzeContent(transcript) {
     return generateDivineAnswer();
   } else if (/papa|mom|dad|love|family|friend/i.test(transcript)) {
     return generatePersonalResponse(transcript);
-  } else if (/hi|hello|how are you|what's your age|how old are you/i.test(transcript)) {
-    return generateGeneralResponse(transcript);
   } else {
-    return handleOutOfContext();
+    return generateNormalResponse(transcript);
   }
 }
 
