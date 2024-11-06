@@ -49,9 +49,22 @@ function generatePersonalResponse(transcript) {
   return `It sounds like you said: "${transcript}". It's nice to hear such kind words! How can I assist you further?`;
 }
 
+// Function to generate a response to general greetings and questions
+function generateGeneralResponse(transcript) {
+  if (/^hi$|^hello$|^hey$/i.test(transcript)) {
+    return "Hello! How can I assist you today?";
+  } else if (/how are you/i.test(transcript)) {
+    return "I'm just a program, so I don't have feelings, but thanks for asking! How can I help you today?";
+  } else if (/what.*your age/i.test(transcript)) {
+    return "I exist outside of time, so age doesn't apply to me. How can I assist you with your queries today?";
+  } else {
+    return `"${transcript}". How can I assist you further?`;
+  }
+}
+
 // Function to generate a normal response for non-religious content
 function generateNormalResponse(transcript) {
-  return `"${transcript}". How can I assist you further?`;
+  return generateGeneralResponse(transcript);
 }
 
 // Function to check for abusive or vulgar content
